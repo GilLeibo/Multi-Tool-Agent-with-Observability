@@ -147,6 +147,6 @@ async def list_models() -> ModelsResponse:
         ollama=ProviderInfo(
             models=ollama_models,
             configured=ollama_configured,
-            default_model="llama3.1",
+            default_model="llama3.2:3b",
         ),
     )
