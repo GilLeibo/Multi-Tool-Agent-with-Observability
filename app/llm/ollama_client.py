@@ -11,7 +11,7 @@ from app.tools.base import ToolDefinition
 class OllamaClient(LLMClient):
     """Ollama local model client using Ollama's OpenAI-compatible /v1 endpoint."""
 
-    def __init__(self, model: str = "llama3.1") -> None:
+    def __init__(self, model: str = "llama3.2:3b") -> None:
         self.model = model
         self._base_url = settings.ollama_base_url.rstrip("/") + "/v1"
         self._client = AsyncOpenAI(

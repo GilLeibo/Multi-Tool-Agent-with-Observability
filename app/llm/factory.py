@@ -19,7 +19,7 @@ def get_llm_client(provider: str, model: str | None = None) -> LLMClient:
 
     elif p == "ollama":
         from app.llm.ollama_client import OllamaClient
-        return OllamaClient(model=model or "llama3.1")
+        return OllamaClient(model=model or "llama3.2:3b")
 
     else:
         raise ValueError(f"Unknown LLM provider: '{provider}'. Choose from: anthropic, openai, gemini, ollama")

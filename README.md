@@ -78,7 +78,7 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 | `anthropic` | `AnthropicClient` | claude-sonnet-4-6 | `ANTHROPIC_API_KEY` |
 | `openai` | `OpenAIClient` | gpt-4o-mini | `OPENAI_API_KEY` |
 | `gemini` | `GeminiClient` | gemini-2.0-flash | `GEMINI_API_KEY` |
-| `ollama` | `OllamaClient` | llama3.1 | Ollama service running |
+| `ollama` | `OllamaClient` | llama3.2:3b | Ollama service running |
 
 Ollama runs locally in Docker — no API key required. Models are pre-pulled into a persistent volume on first startup.
 
@@ -106,7 +106,7 @@ docker compose up --build
 
 On first run, this will:
 - Build the API container
-- Pull `llama3.1` into the Ollama volume (~4 GB, once only)
+- Pull `llama3.2:3b` into the Ollama volume (~4 GB, once only)
 - Initialize the SQLite database and seed the product catalog
 
 Subsequent starts skip the model download — it's cached in the `ollama_data` Docker volume.
