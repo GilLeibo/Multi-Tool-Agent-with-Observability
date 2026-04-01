@@ -1,0 +1,313 @@
+/* Multi-Tool Agent Frontend */
+'use strict';
+
+const API_BASE = '';   // relative — served from same origin
+
+let currentConversationId = null;
+let currentProvider = 'anthropic';
+let currentModel = null;
+let modelsData = null;
+let taskHistory = [];  // [{task_id, preview, status, provider, model}]
+
+// ── Bootstrap ──────────────────────────────────────────────────────────────
+
+async function init() {
+  await loadModels();
+  await checkHealth();
+  document.getElementById('provider-select').addEventListener('change', onProviderChange);
+}
+
+// ── Model loading ──────────────────────────────────────────────────────────
+
+async function loadModels() {
+  try {
+    const resp = await fetch(`${API_BASE}/models`);
+    modelsData = await resp.json();
+    onProviderChange();
+  } catch (err) {
+    console.error('Failed to load models:', err);
+    setProviderWarning('Could not reach the API server.');
+  }
+}
+
+function onProviderChange() {
+  const providerEl = document.getElementById('provider-select');
+  const modelEl = document.getElementById('model-select');
+  const submitBtn = document.getElementById('submit-btn');
+  const warningEl = document.getElementById('provider-warning');
+
+  currentProvider = providerEl.value;
+  if (!modelsData) return;
+
+  const info = modelsData[currentProvider];
+  if (!info) return;
+
+  // Populate model dropdown
+  modelEl.innerHTML = '';
+  if (info.models.length === 0) {
+    modelEl.innerHTML = '<option value="">No models available</option>';
+  } else {
+    info.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      if (m === info.default_model) opt.selected = true;
+      modelEl.appendChild(opt);
+    });
+  }
+
+  currentModel = modelEl.value || null;
+  modelEl.addEventListener('change', () => { currentModel = modelEl.value; });
+
+  // Gate submit on configured status
+  if (!info.configured) {
+    submitBtn.disabled = true;
+    warningEl.textContent = currentProvider === 'ollama'
+      ? 'Ollama is unreachable. Make sure the Ollama service is running.'
+      : `No API key configured for ${currentProvider}. Add it to your .env file.`;
+    warningEl.classList.remove('hidden');
+  } else {
+    submitBtn.disabled = false;
+    warningEl.classList.add('hidden');
+  }
+}
+
+function setProviderWarning(msg) {
+  const el = document.getElementById('provider-warning');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+// ── Health check ───────────────────────────────────────────────────────────
+
+async function checkHealth() {
+  try {
+    const resp = await fetch(`${API_BASE}/health`);
+    const data = await resp.json();
+    const badge = document.getElementById('uptime-badge');
+    badge.textContent = `v${data.version} · up ${formatSeconds(data.uptime_seconds)}`;
+    badge.className = 'badge ok';
+  } catch (_) {
+    const badge = document.getElementById('uptime-badge');
+    badge.textContent = 'API unreachable';
+    badge.className = 'badge error';
+  }
+}
+
+// ── Submit task ────────────────────────────────────────────────────────────
+
+async function submitTask() {
+  const taskInput = document.getElementById('task-input').value.trim();
+  if (!taskInput) { alert('Please enter a task.'); return; }
+
+  const submitBtn = document.getElementById('submit-btn');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner"></span>Running...';
+
+  showResultLoading(taskInput);
+
+  try {
+    const body = {
+      task: taskInput,
+      provider: currentProvider,
+      model: currentModel || undefined,
+      conversation_id: currentConversationId || undefined,
+    };
+
+    const resp = await fetch(`${API_BASE}/task`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      renderError(data.detail || 'Unknown error');
+      return;
+    }
+
+    currentConversationId = data.conversation_id;
+    updateConvLabel();
+    renderResult(data);
+    addToHistory(data, taskInput);
+
+  } catch (err) {
+    renderError(String(err));
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Task';
+  }
+}
+
+// ── Conversation ───────────────────────────────────────────────────────────
+
+function clearConversation() {
+  currentConversationId = null;
+  updateConvLabel();
+}
+
+function updateConvLabel() {
+  const el = document.getElementById('conv-label');
+  el.textContent = currentConversationId
+    ? `Conversation: ${currentConversationId.slice(0, 8)}…`
+    : 'New conversation';
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
+
+function showResultLoading(task) {
+  const card = document.getElementById('result-card');
+  card.classList.remove('hidden');
+  document.getElementById('result-status').className = 'badge loading';
+  document.getElementById('result-status').textContent = 'Running…';
+  document.getElementById('result-model').textContent = `${currentProvider} / ${currentModel || 'default'}`;
+  document.getElementById('result-latency').textContent = '';
+  document.getElementById('result-task-id').textContent = '';
+  document.getElementById('result-tokens').textContent = '';
+  document.getElementById('result-answer').textContent = task;
+  document.getElementById('trace-list').innerHTML = '';
+  document.getElementById('trace-count').textContent = '0';
+}
+
+function renderResult(data) {
+  const card = document.getElementById('result-card');
+  card.classList.remove('hidden');
+
+  // Status badge
+  const statusEl = document.getElementById('result-status');
+  statusEl.textContent = data.status.toUpperCase();
+  statusEl.className = `badge ${data.status === 'completed' ? 'completed' : 'error'}`;
+
+  // Meta chips
+  document.getElementById('result-model').textContent = `${data.provider} / ${data.model}`;
+  document.getElementById('result-latency').textContent = `${(data.total_latency_ms / 1000).toFixed(2)}s`;
+  document.getElementById('result-task-id').textContent = `ID: ${data.task_id.slice(0, 8)}…`;
+
+  // Tokens
+  const totalTokens = (data.total_input_tokens || 0) + (data.total_output_tokens || 0);
+  document.getElementById('result-tokens').textContent =
+    `Tokens: ${data.total_input_tokens} in / ${data.total_output_tokens} out / ${totalTokens} total`;
+
+  // Answer
+  const answerEl = document.getElementById('result-answer');
+  if (data.status === 'error' && data.error_message) {
+    answerEl.textContent = `Error: ${data.error_message}`;
+    answerEl.style.color = '#991b1b';
+  } else {
+    answerEl.textContent = data.final_answer || '(no answer)';
+    answerEl.style.color = '';
+  }
+
+  // Trace
+  renderTrace(data.trace || []);
+}
+
+function renderTrace(steps) {
+  const listEl = document.getElementById('trace-list');
+  const countEl = document.getElementById('trace-count');
+  listEl.innerHTML = '';
+  countEl.textContent = steps.length;
+
+  if (steps.length === 0) {
+    listEl.innerHTML = '<div style="padding:0.75rem 1rem;color:#9ca3af;font-size:0.85rem;">No tool calls were made.</div>';
+    return;
+  }
+
+  steps.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'trace-step';
+
+    const hasError = !!step.tool_error;
+    div.innerHTML = `
+      <div class="trace-step-header">
+        <span class="iteration-label">Iter ${step.iteration}.${step.step_order + 1}</span>
+        <span class="tool-badge ${hasError ? 'error' : ''}">${escHtml(step.tool_name)}</span>
+        <span class="latency-badge">${step.latency_ms.toFixed(1)}ms</span>
+      </div>
+      ${step.thinking ? `<div class="trace-thinking">💭 ${escHtml(step.thinking)}</div>` : ''}
+      <div class="trace-field">
+        <label>Input</label>
+        <pre>${escHtml(JSON.stringify(step.tool_input, null, 2))}</pre>
+      </div>
+      ${hasError
+        ? `<div class="trace-field"><label>Error</label><pre style="color:#991b1b">${escHtml(step.tool_error)}</pre></div>`
+        : `<div class="trace-field"><label>Output</label><pre>${escHtml(
+            step.tool_output !== null && step.tool_output !== undefined
+              ? (typeof step.tool_output === 'string' ? step.tool_output : JSON.stringify(step.tool_output, null, 2))
+              : '(none)'
+          )}</pre></div>`
+      }
+    `;
+    listEl.appendChild(div);
+  });
+}
+
+function renderError(msg) {
+  const card = document.getElementById('result-card');
+  card.classList.remove('hidden');
+  document.getElementById('result-status').className = 'badge error';
+  document.getElementById('result-status').textContent = 'ERROR';
+  document.getElementById('result-answer').textContent = msg;
+  document.getElementById('result-answer').style.color = '#991b1b';
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+
+function addToHistory(data, preview) {
+  taskHistory.unshift({
+    task_id: data.task_id,
+    preview: preview.slice(0, 60),
+    status: data.status,
+    provider: data.provider,
+    model: data.model,
+  });
+  renderHistory();
+}
+
+function renderHistory() {
+  const listEl = document.getElementById('history-list');
+  if (taskHistory.length === 0) {
+    listEl.innerHTML = '<span class="history-empty">No tasks yet.</span>';
+    return;
+  }
+  listEl.innerHTML = taskHistory.slice(0, 20).map(item => `
+    <div class="history-list-item" onclick="loadTask('${escHtml(item.task_id)}')">
+      <span class="badge ${item.status === 'completed' ? 'completed' : 'error'}" style="font-size:0.7rem;padding:0.1rem 0.5rem">${item.status}</span>
+      <span class="history-task-preview">${escHtml(item.preview)}</span>
+      <span class="history-meta">${escHtml(item.provider)}/${escHtml(item.model)}</span>
+    </div>
+  `).join('');
+}
+
+async function loadTask(taskId) {
+  try {
+    const resp = await fetch(`${API_BASE}/tasks/${taskId}`);
+    if (!resp.ok) { alert('Task not found'); return; }
+    const data = await resp.json();
+    renderResult(data);
+    document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+  } catch (err) {
+    alert('Failed to load task: ' + err);
+  }
+}
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatSeconds(s) {
+  if (s < 60) return `${Math.round(s)}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ${Math.round(s % 60)}s`;
+  return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
+}
+
+// ── Start ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', init);

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Tool AI Agent</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Multi-Tool AI Agent</h1>
+    <span id="uptime-badge" class="badge">Loading...</span>
+  </header>
+
+  <main>
+    <!-- ── Model Selector ─────────────────────────────────────────── -->
+    <section class="card" id="model-card">
+      <h2>Model</h2>
+      <div class="model-row">
+        <div class="field">
+          <label for="provider-select">Provider</label>
+          <select id="provider-select">
+            <option value="anthropic">Anthropic</option>
+            <option value="openai">OpenAI</option>
+            <option value="gemini">Gemini</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="model-select">Model</label>
+          <select id="model-select">
+            <option>Loading...</option>
+          </select>
+        </div>
+        <div id="provider-warning" class="warning hidden"></div>
+      </div>
+    </section>
+
+    <!-- ── Task Input ─────────────────────────────────────────────── -->
+    <section class="card" id="input-card">
+      <h2>Task</h2>
+      <textarea
+        id="task-input"
+        rows="4"
+        placeholder="Ask anything... e.g. 'What is 15% of 847 plus the square root of 144?'"
+      ></textarea>
+      <div class="conv-row">
+        <span id="conv-label" class="conv-indicator">New conversation</span>
+        <button id="clear-conv-btn" class="btn-secondary" onclick="clearConversation()">Clear Conversation</button>
+      </div>
+      <button id="submit-btn" class="btn-primary" onclick="submitTask()">Submit Task</button>
+    </section>
+
+    <!-- ── Result Panel ───────────────────────────────────────────── -->
+    <section class="card hidden" id="result-card">
+      <h2>Result</h2>
+      <div class="result-meta">
+        <span id="result-status" class="badge"></span>
+        <span id="result-model" class="meta-chip"></span>
+        <span id="result-latency" class="meta-chip"></span>
+        <span id="result-task-id" class="meta-chip small"></span>
+      </div>
+      <div class="token-row">
+        <span id="result-tokens"></span>
+      </div>
+
+      <div class="answer-box">
+        <h3>Final Answer</h3>
+        <div id="result-answer"></div>
+      </div>
+
+      <details id="trace-details">
+        <summary>Reasoning Trace (<span id="trace-count">0</span> steps)</summary>
+        <div id="trace-list"></div>
+      </details>
+    </section>
+
+    <!-- ── History Panel ─────────────────────────────────────────── -->
+    <section class="card" id="history-card">
+      <h2>History <span class="small muted">(this session)</span></h2>
+      <div id="history-list" class="history-empty">No tasks yet.</div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
