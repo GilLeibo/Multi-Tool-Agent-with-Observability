@@ -9,7 +9,8 @@ A general-purpose AI agent REST API that reasons step-by-step using a custom ReA
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        FastAPI REST API                         │
-│  POST /task  │  GET /tasks/{id}  │  GET /health  │  GET /models │
+│  POST /task  │  GET /tasks/{id}  │  GET /tasks  │  GET /health  │
+│              │                   │  GET /models │               │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                     ┌────────▼────────┐
@@ -160,6 +161,17 @@ curl http://localhost:8000/tasks/abc-123-...
 
 ---
 
+### GET /tasks
+
+List the most recent tasks (default: last 50), ordered newest first. Used by the UI to restore history across sessions.
+
+```bash
+curl http://localhost:8000/tasks
+curl http://localhost:8000/tasks?limit=10
+```
+
+---
+
 ### GET /health
 
 Health check.
@@ -169,6 +181,20 @@ Health check.
 ### GET /models
 
 Returns available models per provider, including which providers are configured and whether Ollama is reachable.
+
+---
+
+## Running Locally (without Docker)
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env
+# Fill in API keys in .env
+python -m app.db.init_db
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Visit **http://localhost:8000/ui** in your browser.
 
 ---
 
@@ -184,6 +210,12 @@ Or locally (with dependencies installed):
 pip install -r requirements.txt
 pytest tests/ -v
 ```
+
+The test suite covers:
+- Tool unit tests: `calculator`, `unit_converter`, `database_query` (including SQL injection rejection)
+- Agent loop integration: single tool call, multi-turn conversation context
+- Multi-tool trace tests: sequential tool chains, iteration tracking, error recovery in trace
+- API endpoint tests: health, task CRUD, models endpoint
 
 ---
 
@@ -284,8 +316,17 @@ The agent remembers the previous result (160.934 km) from conversation history a
 
 ## Bonus Features
 
-- **`database_query` tool** — pre-seeded SQLite catalog with 17 products and 30+ orders across 4 categories
-- **Multi-turn conversations** — `conversation_id` links task chains; prior turns loaded as context
-- **4 LLM providers** — Anthropic, OpenAI, Gemini, Ollama (offline via Docker)
-- **Frontend UI** — provider/model selector, trace accordion, session history, token display
-- **Test suite** — automated assertions across calculator, DB query, multi-turn, health check, and API endpoints
+- **`database_query` tool** — pre-seeded SQLite catalog with 17 products and 30+ orders across 4 categories; SQL injection protected (SELECT-only + semicolon blocking)
+- **Multi-turn conversations** — `conversation_id` links task chains; prior turns loaded as context. UI shows "Continue conversation" button on each history item
+- **4 LLM providers** — Anthropic, OpenAI, Gemini, Ollama (offline, no API key required)
+- **Frontend UI** — provider/model selector with API key validation, task input lock during execution, reasoning trace accordion, persistent session history loaded from DB on startup, token + latency display
+- **Test suite** — 20 automated tests across tools, agent loop, multi-tool trace chains, and API endpoints
+
+## Provider Notes
+
+| Provider | Tool Use Quality | Notes |
+|---|---|---|
+| Anthropic (claude-sonnet-4-6) | Excellent | Reliably calls tools with correct arguments |
+| OpenAI (gpt-4o-mini) | Good | Strong tool call adherence |
+| Gemini (gemini-2.0-flash) | Good | Requires `GEMINI_API_KEY` |
+| Ollama (llama3.2:3b) | Limited | Small model; may pass schema metadata instead of values for some tools. A larger model (8B+) is recommended for reliable tool use |
