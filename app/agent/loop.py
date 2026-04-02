@@ -159,7 +159,7 @@ async def run_agent(
         "anthropic": "claude-sonnet-4-6",
         "openai": "gpt-4o-mini",
         "gemini": "gemini-2.0-flash",
-        "ollama": "llama3.1",
+        "ollama": "llama3.2:3b",
     }
     actual_model = model or model_defaults.get(provider.lower(), provider)
 
