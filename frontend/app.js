@@ -59,16 +59,16 @@ function onProviderChange() {
   currentModel = modelEl.value || null;
   modelEl.addEventListener('change', () => { currentModel = modelEl.value; });
 
-  // Gate submit on configured status
+  // Show warning and disable submit if provider is not configured
   if (!info.configured) {
-    submitBtn.disabled = true;
     warningEl.textContent = currentProvider === 'ollama'
       ? 'Ollama is unreachable. Make sure the Ollama service is running.'
       : `No API key configured for ${currentProvider}. Add it to your .env file.`;
     warningEl.classList.remove('hidden');
+    submitBtn.disabled = true;
   } else {
-    submitBtn.disabled = false;
     warningEl.classList.add('hidden');
+    submitBtn.disabled = false;
   }
 }
 
@@ -97,12 +97,28 @@ async function checkHealth() {
 // ── Submit task ────────────────────────────────────────────────────────────
 
 async function submitTask() {
-  const taskInput = document.getElementById('task-input').value.trim();
+  const taskInputEl = document.getElementById('task-input');
+  const taskInput = taskInputEl.value.trim();
   if (!taskInput) { alert('Please enter a task.'); return; }
 
+  const info = modelsData && modelsData[currentProvider];
+  if (info && !info.configured) {
+    const msg = currentProvider === 'ollama'
+      ? 'Ollama is unreachable. Make sure the Ollama service is running.'
+      : `No API key configured for ${currentProvider}. Add it to your .env file.`;
+    renderError(msg);
+    return;
+  }
+
   const submitBtn = document.getElementById('submit-btn');
+  const providerEl = document.getElementById('provider-select');
+  const modelEl = document.getElementById('model-select');
+
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<span class="spinner"></span>Running...';
+  providerEl.disabled = true;
+  modelEl.disabled = true;
+  taskInputEl.disabled = true;
 
   showResultLoading(taskInput);
 
@@ -135,8 +151,12 @@ async function submitTask() {
   } catch (err) {
     renderError(String(err));
   } finally {
-    submitBtn.disabled = false;
+    const currentInfo = modelsData && modelsData[currentProvider];
+    submitBtn.disabled = !!(currentInfo && !currentInfo.configured);
     submitBtn.textContent = 'Submit Task';
+    providerEl.disabled = false;
+    modelEl.disabled = false;
+    taskInputEl.disabled = false;
   }
 }
 
@@ -165,7 +185,7 @@ function showResultLoading(task) {
   document.getElementById('result-latency').textContent = '';
   document.getElementById('result-task-id').textContent = '';
   document.getElementById('result-tokens').textContent = '';
-  document.getElementById('result-answer').textContent = task;
+  document.getElementById('result-answer').textContent = '';
   document.getElementById('trace-list').innerHTML = '';
   document.getElementById('trace-count').textContent = '0';
 }
