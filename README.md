@@ -125,6 +125,22 @@ Visit **http://localhost:8000/ui** in your browser.
 
 ---
 
+### Running Locally (without Docker)
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env
+# Fill in API keys in .env
+python -m app.db.init_db
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+Visit **http://localhost:8000/ui** in your browser.
+
+> **Using Ollama locally:** Ollama must be installed and running on your machine (`ollama serve`), and the desired model must be pulled — e.g. `ollama pull llama3.2:3b`. Download Ollama from [ollama.com](https://ollama.com).
+
+---
+
 ## API Reference
 
 ### POST /task
@@ -181,20 +197,6 @@ Health check.
 ### GET /models
 
 Returns available models per provider, including which providers are configured and whether Ollama is reachable.
-
----
-
-## Running Locally (without Docker)
-
-```bash
-pip install -r requirements.txt
-cp .env.example .env
-# Fill in API keys in .env
-python -m app.db.init_db
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
-Visit **http://localhost:8000/ui** in your browser.
 
 ---
 
