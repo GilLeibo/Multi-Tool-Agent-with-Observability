@@ -83,6 +83,8 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 
 Ollama runs locally in Docker — no API key required. Models are pre-pulled into a persistent volume on first startup.
 
+**Using a different Ollama model:** edit the `ollama pull` line in `docker-compose.yml` to pull whichever model you want (e.g. `llama3.1:8b`, `mistral`, `qwen2.5:7b`). Larger models (8B+) give significantly more reliable tool use than the default 3B.
+
 ---
 
 ## Setup & Run
@@ -137,7 +139,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Visit **http://localhost:8000/ui** in your browser.
 
-> **Using Ollama locally:** Ollama must be installed and running on your machine (`ollama serve`), and the desired model must be pulled — e.g. `ollama pull llama3.2:3b`. Download Ollama from [ollama.com](https://ollama.com).
+> **Using Ollama locally:** Ollama must be installed and running on your machine (`ollama serve`), and the desired model must be pulled before starting — e.g. `ollama pull llama3.2:3b` or any other model such as `ollama pull llama3.1:8b`. Download Ollama from [ollama.com](https://ollama.com).
 
 ---
 
