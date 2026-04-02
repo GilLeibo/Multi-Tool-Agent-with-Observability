@@ -109,6 +109,7 @@ textarea { resize: vertical; font-family: inherit; }
   transition: border-color 0.15s;
 }
 .btn-secondary:hover { border-color: #9ca3af; }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
 
 /* Conversation indicator */
 .conv-row {

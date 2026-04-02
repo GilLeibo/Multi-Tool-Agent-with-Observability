@@ -45,8 +45,10 @@
         placeholder="Ask anything... e.g. 'What is 15% of 847 plus the square root of 144?'"
       ></textarea>
       <div class="conv-row">
-        <span id="conv-label" class="conv-indicator">New conversation</span>
-        <button id="clear-conv-btn" class="btn-secondary" onclick="clearConversation()">Clear Conversation</button>
+        <span id="conv-label" class="conv-indicator">No active conversation — each task is independent</span>
+      </div>
+      <div class="conv-row">
+        <button id="clear-conv-btn" class="btn-secondary" onclick="clearConversation()">New Conversation</button>
       </div>
       <button id="submit-btn" class="btn-primary" onclick="submitTask()">Submit Task</button>
     </section>

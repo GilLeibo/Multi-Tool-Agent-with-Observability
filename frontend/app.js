@@ -113,12 +113,14 @@ async function submitTask() {
   const submitBtn = document.getElementById('submit-btn');
   const providerEl = document.getElementById('provider-select');
   const modelEl = document.getElementById('model-select');
+  const clearConvBtn = document.getElementById('clear-conv-btn');
 
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<span class="spinner"></span>Running...';
   providerEl.disabled = true;
   modelEl.disabled = true;
   taskInputEl.disabled = true;
+  clearConvBtn.disabled = true;
 
   showResultLoading(taskInput);
 
@@ -157,21 +159,29 @@ async function submitTask() {
     providerEl.disabled = false;
     modelEl.disabled = false;
     taskInputEl.disabled = false;
+    clearConvBtn.disabled = false;
   }
 }
 
 // ── Conversation ───────────────────────────────────────────────────────────
 
 function clearConversation() {
+  if (document.getElementById('clear-conv-btn').disabled) return;
   currentConversationId = null;
   updateConvLabel();
+}
+
+function resumeConversation(conversationId) {
+  currentConversationId = conversationId;
+  updateConvLabel();
+  document.getElementById('task-input').focus();
 }
 
 function updateConvLabel() {
   const el = document.getElementById('conv-label');
   el.textContent = currentConversationId
-    ? `Conversation: ${currentConversationId.slice(0, 8)}…`
-    : 'New conversation';
+    ? `Active conversation: ${currentConversationId.slice(0, 8)}…`
+    : 'No active conversation — each task is independent';
 }
 
 // ── Render helpers ─────────────────────────────────────────────────────────
@@ -202,7 +212,7 @@ function renderResult(data) {
   // Meta chips
   document.getElementById('result-model').textContent = `${data.provider} / ${data.model}`;
   document.getElementById('result-latency').textContent = `${(data.total_latency_ms / 1000).toFixed(2)}s`;
-  document.getElementById('result-task-id').textContent = `ID: ${data.task_id.slice(0, 8)}…`;
+  document.getElementById('result-task-id').textContent = '';
 
   // Tokens
   const totalTokens = (data.total_input_tokens || 0) + (data.total_output_tokens || 0);
@@ -277,6 +287,7 @@ function renderError(msg) {
 function addToHistory(data, preview) {
   taskHistory.unshift({
     task_id: data.task_id,
+    conversation_id: data.conversation_id,
     preview: preview.slice(0, 60),
     status: data.status,
     provider: data.provider,
@@ -292,10 +303,12 @@ function renderHistory() {
     return;
   }
   listEl.innerHTML = taskHistory.slice(0, 20).map(item => `
-    <div class="history-list-item" onclick="loadTask('${escHtml(item.task_id)}')">
+    <div class="history-list-item">
       <span class="badge ${item.status === 'completed' ? 'completed' : 'error'}" style="font-size:0.7rem;padding:0.1rem 0.5rem">${item.status}</span>
-      <span class="history-task-preview">${escHtml(item.preview)}</span>
+      <span class="history-task-preview" style="flex:1">${escHtml(item.preview)}</span>
       <span class="history-meta">${escHtml(item.provider)}/${escHtml(item.model)}</span>
+      <button class="btn-secondary" style="font-size:0.75rem;padding:0.15rem 0.6rem;margin-left:0.5rem" onclick="loadTask('${escHtml(item.task_id)}')">Retrieve task</button>
+      ${item.conversation_id ? `<button class="btn-secondary" style="font-size:0.75rem;padding:0.15rem 0.6rem;margin-left:0.5rem" onclick="resumeConversation('${escHtml(item.conversation_id)}')">Continue conversation</button>` : ''}
     </div>
   `).join('');
 }
