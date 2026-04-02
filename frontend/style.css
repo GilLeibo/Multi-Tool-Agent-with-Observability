@@ -122,6 +122,18 @@ textarea { resize: vertical; font-family: inherit; }
   font-size: 0.8rem;
   color: #6b7280;
   font-family: monospace;
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  transition: background 0.3s, color 0.3s;
+}
+.conv-indicator.highlight {
+  animation: conv-flash 0.4s ease forwards;
+  background: #ede9fe;
+  color: #5b21b6;
+}
+@keyframes conv-flash {
+  0%   { background: transparent; color: #6b7280; }
+  100% { background: #ede9fe; color: #5b21b6; }
 }
 
 /* Result meta */

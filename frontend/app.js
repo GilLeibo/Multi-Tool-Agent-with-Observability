@@ -191,13 +191,11 @@ function clearConversation() {
   if (document.getElementById('clear-conv-btn').disabled) return;
   currentConversationId = null;
   updateConvLabel();
+  document.getElementById('conv-label').classList.remove('highlight');
+  document.getElementById('task-input').value = '';
+  document.getElementById('result-card').classList.add('hidden');
 }
 
-function resumeConversation(conversationId) {
-  currentConversationId = conversationId;
-  updateConvLabel();
-  document.getElementById('task-input').focus();
-}
 
 function updateConvLabel() {
   const el = document.getElementById('conv-label');
@@ -330,7 +328,6 @@ function renderHistory() {
       <span class="history-task-preview" style="flex:1">${escHtml(item.preview)}</span>
       <span class="history-meta">${escHtml(item.provider)}/${escHtml(item.model)}</span>
       <button class="btn-secondary" style="font-size:0.75rem;padding:0.15rem 0.6rem;margin-left:0.5rem" onclick="loadTask('${escHtml(item.task_id)}')">Retrieve task</button>
-      ${item.conversation_id ? `<button class="btn-secondary" style="font-size:0.75rem;padding:0.15rem 0.6rem;margin-left:0.5rem" onclick="resumeConversation('${escHtml(item.conversation_id)}')">Continue conversation</button>` : ''}
     </div>
   `).join('');
 }
@@ -340,8 +337,21 @@ async function loadTask(taskId) {
     const resp = await fetch(`${API_BASE}/tasks/${taskId}`);
     if (!resp.ok) { alert('Task not found'); return; }
     const data = await resp.json();
+    if (data.input_text) {
+      document.getElementById('task-input').value = data.input_text;
+    }
+    currentConversationId = data.conversation_id || null;
+    updateConvLabel();
+    const convLabel = document.getElementById('conv-label');
+    if (currentConversationId) {
+      convLabel.classList.remove('highlight');
+      void convLabel.offsetWidth;
+      convLabel.classList.add('highlight');
+    } else {
+      convLabel.classList.remove('highlight');
+    }
     renderResult(data);
-    document.getElementById('result-card').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('input-card').scrollIntoView({ behavior: 'smooth' });
   } catch (err) {
     alert('Failed to load task: ' + err);
   }

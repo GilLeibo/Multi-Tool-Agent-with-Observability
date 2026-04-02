@@ -319,12 +319,14 @@ Response includes `conversation_id: "abc-123"`
 
 The agent remembers the previous result (160.934 km) from conversation history and converts it to 160,934 meters.
 
+> **Via the UI:** press **Retrieve task** on any history item to restore the query and resume its conversation. The active conversation is highlighted in the task panel. Press **New Conversation** to clear the context and start fresh.
+
 ---
 
 ## Bonus Features
 
 - **`database_query` tool** — pre-seeded SQLite catalog with 17 products and 30+ orders across 4 categories; SQL injection protected (SELECT-only + semicolon blocking)
-- **Multi-turn conversations** — `conversation_id` links task chains; prior turns loaded as context. UI shows "Continue conversation" button on each history item
+- **Multi-turn conversations** — `conversation_id` links task chains; prior turns loaded as context. Pressing **Retrieve task** in the history restores the task query and resumes the conversation — the next submission automatically continues with the previous context. Press **New Conversation** to start fresh.
 - **4 LLM providers** — Anthropic, OpenAI, Gemini, Ollama (offline, no API key required)
 - **Frontend UI** — provider/model selector with API key validation, task input lock during execution, reasoning trace accordion, persistent session history loaded from DB on startup, token + latency display
 - **Test suite** — 25 automated tests across tools, agent loop output correctness, multi-tool trace chains, and API endpoints
