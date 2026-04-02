@@ -1,6 +1,6 @@
 """Initialize database tables and seed product catalog data."""
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 
 from sqlalchemy.orm import Session
@@ -88,7 +88,7 @@ def _seed_catalog() -> None:
         if db.query(Product).count() > 0:
             return  # Already seeded
 
-        now_str = datetime.utcnow().isoformat()
+        now_str = datetime.now(timezone.utc).isoformat()
         sku_to_id: dict[str, int] = {}
 
         for p in PRODUCTS:
@@ -108,7 +108,7 @@ def _seed_catalog() -> None:
             product_id = sku_to_id[sku]
             # Find price for the product
             price = next(p["price"] for p in PRODUCTS if p["sku"] == sku)
-            ordered_at = (datetime.utcnow() - timedelta(days=days_ago)).isoformat()
+            ordered_at = (datetime.now(timezone.utc) - timedelta(days=days_ago)).isoformat()
             order = Order(
                 product_id=product_id,
                 quantity=qty,

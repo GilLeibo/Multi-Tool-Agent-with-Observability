@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column, String, Text, Integer, Float, DateTime, ForeignKey
@@ -13,8 +13,8 @@ class Conversation(Base):
     __tablename__ = "conversations"
 
     id = Column(String(36), primary_key=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    last_activity_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_activity_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     turn_count = Column(Integer, nullable=False, default=0)
 
     tasks = relationship("Task", back_populates="conversation")
@@ -36,7 +36,7 @@ class Task(Base):
     total_latency_ms = Column(Float, nullable=True)
     iterations = Column(Integer, nullable=True, default=0)
     error_message = Column(Text, nullable=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime, nullable=True)
 
     conversation = relationship("Conversation", back_populates="tasks")
@@ -57,7 +57,7 @@ class TraceStep(Base):
     tool_error = Column(Text, nullable=True)
     thinking = Column(Text, nullable=True)
     latency_ms = Column(Float, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     task = relationship("Task", back_populates="trace_steps")
 
@@ -70,7 +70,7 @@ class ConversationMessage(Base):
     task_id = Column(String(36), ForeignKey("tasks.id"), nullable=False)
     role = Column(String(20), nullable=False)   # "user" or "assistant"
     content = Column(Text, nullable=False)       # JSON-serialized message content
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     conversation = relationship("Conversation", back_populates="messages")
     task = relationship("Task", back_populates="messages")

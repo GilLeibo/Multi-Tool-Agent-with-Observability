@@ -4,7 +4,7 @@ import logging
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -121,7 +121,7 @@ def _persist_task(
         # Update conversation metadata
         conv = db.get(Conversation, conversation_id)
         if conv:
-            conv.last_activity_at = datetime.utcnow()
+            conv.last_activity_at = datetime.now(timezone.utc)
             conv.turn_count = (conv.turn_count or 0) + 1
 
     db.commit()
@@ -137,7 +137,7 @@ async def run_agent(
 ) -> AgentResult:
     """Run the ReAct agent loop and return a structured result."""
     task_id = str(uuid.uuid4())
-    created_at = datetime.utcnow()
+    created_at = datetime.now(timezone.utc)
     start_time = time.monotonic()
 
     # Resolve / create conversation
@@ -251,7 +251,7 @@ async def run_agent(
         error_message = str(exc)
         status = "error"
 
-    completed_at = datetime.utcnow()
+    completed_at = datetime.now(timezone.utc)
     total_latency_ms = (time.monotonic() - start_time) * 1000
 
     result = AgentResult(
