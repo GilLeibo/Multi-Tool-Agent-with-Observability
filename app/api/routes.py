@@ -82,6 +82,17 @@ async def submit_task(
     return _task_to_response(task)
 
 
+@router.get("/tasks", response_model=list[TaskResponse])
+def list_tasks(limit: int = 50, db: Session = Depends(get_db)) -> list[TaskResponse]:
+    tasks = (
+        db.query(Task)
+        .order_by(Task.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    return [_task_to_response(t) for t in tasks]
+
+
 @router.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: str, db: Session = Depends(get_db)) -> TaskResponse:
     task = db.get(Task, task_id)

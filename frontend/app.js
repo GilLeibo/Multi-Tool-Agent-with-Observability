@@ -14,7 +14,29 @@ let taskHistory = [];  // [{task_id, preview, status, provider, model}]
 async function init() {
   await loadModels();
   await checkHealth();
+  await loadHistory();
   document.getElementById('provider-select').addEventListener('change', onProviderChange);
+}
+
+// ── History loading ────────────────────────────────────────────────────────
+
+async function loadHistory() {
+  try {
+    const resp = await fetch(`${API_BASE}/tasks?limit=50`);
+    if (!resp.ok) return;
+    const tasks = await resp.json();
+    taskHistory = tasks.map(t => ({
+      task_id: t.task_id,
+      conversation_id: t.conversation_id,
+      preview: (t.input_text || '').slice(0, 60),
+      status: t.status,
+      provider: t.provider,
+      model: t.model,
+    }));
+    renderHistory();
+  } catch (err) {
+    console.error('Failed to load history:', err);
+  }
 }
 
 // ── Model loading ──────────────────────────────────────────────────────────
