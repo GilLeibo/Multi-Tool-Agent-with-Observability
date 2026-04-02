@@ -211,11 +211,14 @@ pip install -r requirements.txt
 pytest tests/ -v
 ```
 
-The test suite covers:
-- Tool unit tests: `calculator`, `unit_converter`, `database_query` (including SQL injection rejection)
-- Agent loop integration: single tool call, multi-turn conversation context
-- Multi-tool trace tests: sequential tool chains, iteration tracking, error recovery in trace
-- API endpoint tests: health, task CRUD, models endpoint
+The test suite covers 25 tests across 4 files:
+
+| File | What it covers |
+|---|---|
+| `test_agent.py` | Agent output correctness (tool result + final answer content) and multi-turn context |
+| `test_multi_tool.py` | Sequential multi-tool chains, iteration tracking, error recovery in trace |
+| `test_tools.py` | Tool function unit tests: calculator, unit_converter, database_query (incl. SQL injection rejection) |
+| `test_api.py` | API endpoint tests: health, task CRUD, models |
 
 ---
 
@@ -320,7 +323,7 @@ The agent remembers the previous result (160.934 km) from conversation history a
 - **Multi-turn conversations** — `conversation_id` links task chains; prior turns loaded as context. UI shows "Continue conversation" button on each history item
 - **4 LLM providers** — Anthropic, OpenAI, Gemini, Ollama (offline, no API key required)
 - **Frontend UI** — provider/model selector with API key validation, task input lock during execution, reasoning trace accordion, persistent session history loaded from DB on startup, token + latency display
-- **Test suite** — 20 automated tests across tools, agent loop, multi-tool trace chains, and API endpoints
+- **Test suite** — 25 automated tests across tools, agent loop output correctness, multi-tool trace chains, and API endpoints
 
 ## Provider Notes
 
