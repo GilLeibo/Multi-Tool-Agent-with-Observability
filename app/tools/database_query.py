@@ -18,6 +18,9 @@ async def _handle(input_dict: dict) -> ToolResult:
     if not _SELECT_PATTERN.match(sql):
         return ToolResult(error="Only SELECT statements are allowed for security reasons")
 
+    if ";" in sql:
+        return ToolResult(error="Multiple statements are not allowed")
+
     try:
         with Session(engine) as db:
             result = db.execute(text(sql))
