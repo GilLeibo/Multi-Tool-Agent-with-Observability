@@ -77,7 +77,7 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 | Provider | Client | Default Model | Requires |
 |---|---|---|---|
 | `anthropic` | `AnthropicClient` | claude-sonnet-4-6 | `ANTHROPIC_API_KEY` |
-| `openai` | `OpenAIClient` | gpt-4o-mini | `OPENAI_API_KEY` |
+| `openai` | `OpenAIClient` | gpt-4.1-mini | `OPENAI_API_KEY` |
 | `gemini` | `GeminiClient` | gemini-2.0-flash | `GEMINI_API_KEY` |
 | `ollama` | `OllamaClient` | llama3.2:3b | Ollama service running |
 
@@ -345,6 +345,6 @@ The agent remembers the previous result (160.934 km) from conversation history a
 | Provider | Tool Use Quality | Notes |
 |---|---|---|
 | Anthropic (claude-sonnet-4-6) | Excellent | Reliably calls tools with correct arguments |
-| OpenAI (gpt-4o-mini) | Good | Strong tool call adherence |
+| OpenAI (gpt-4.1-mini) | Good | Strong tool call adherence |
 | Gemini (gemini-2.0-flash) | Good | Requires `GEMINI_API_KEY` |
 | Ollama (llama3.2:3b) | Limited | Small model; may pass schema metadata instead of values for some tools. A larger model (8B+) is recommended for reliable tool use |

@@ -120,7 +120,7 @@ def health_check(db: Session = Depends(get_db)) -> HealthResponse:
 @router.get("/models", response_model=ModelsResponse)
 async def list_models() -> ModelsResponse:
     anthropic_models = ["claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"]
-    openai_models = ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]
+    openai_models = ["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "gpt-4o-mini", "o3", "o4-mini"]
     gemini_models = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-2.5-flash", "gemini-2.5-pro"]
 
     # Fetch Ollama models live
@@ -148,7 +148,7 @@ async def list_models() -> ModelsResponse:
         openai=ProviderInfo(
             models=openai_models,
             configured=bool(settings.openai_api_key),
-            default_model="gpt-4o-mini",
+            default_model="gpt-4.1-mini",
         ),
         gemini=ProviderInfo(
             models=gemini_models,

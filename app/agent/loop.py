@@ -157,7 +157,7 @@ async def run_agent(
     # Determine actual model name
     model_defaults = {
         "anthropic": "claude-sonnet-4-6",
-        "openai": "gpt-4o-mini",
+        "openai": "gpt-4.1-mini",
         "gemini": "gemini-2.0-flash",
         "ollama": "llama3.2:3b",
     }

@@ -8,7 +8,7 @@ from app.tools.base import ToolDefinition
 
 
 class OpenAIClient(LLMClient):
-    def __init__(self, model: str = "gpt-4o-mini") -> None:
+    def __init__(self, model: str = "gpt-4.1-mini") -> None:
         self.model = model
         self._client = AsyncOpenAI(api_key=settings.openai_api_key)
 

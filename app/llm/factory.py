@@ -11,7 +11,7 @@ def get_llm_client(provider: str, model: str | None = None) -> LLMClient:
 
     elif p == "openai":
         from app.llm.openai_client import OpenAIClient
-        return OpenAIClient(model=model or "gpt-4o-mini")
+        return OpenAIClient(model=model or "gpt-4.1-mini")
 
     elif p == "gemini":
         from app.llm.gemini_client import GeminiClient
