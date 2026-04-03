@@ -169,6 +169,10 @@ async function submitTask() {
 
     currentConversationId = data.conversation_id;
     updateConvLabel();
+    const convLabel = document.getElementById('conv-label');
+    convLabel.classList.remove('highlight');
+    void convLabel.offsetWidth;
+    convLabel.classList.add('highlight');
     renderResult(data);
     addToHistory(data, taskInput);
 
