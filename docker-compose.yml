@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollama_data:/root/.ollama   # model weights persisted across restarts
+    ports:
+      - "11434:11434"
+    entrypoint: >
+      /bin/bash -c "
+        ollama serve &
+        sleep 5 &&
+        ollama pull llama3.2:3b &&
+        wait"
+    restart: unless-stopped
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - ollama
+    volumes:
+      - sqlite_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
+  ollama_data:
