@@ -81,7 +81,7 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 | `gemini` | `GeminiClient` | gemini-2.0-flash | `GEMINI_API_KEY` |
 | `ollama` | `OllamaClient` | llama3.2:3b | Ollama service running |
 
-#### Ollama
+### Ollama
 
 Ollama requires no API key. Larger models (8B+) give significantly more reliable tool use than the default 3B.
 
