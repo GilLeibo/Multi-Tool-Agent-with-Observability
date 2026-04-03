@@ -85,6 +85,8 @@ Ollama runs locally in Docker — no API key required. Models are pre-pulled int
 
 **Using different Ollama models (Docker):** set `OLLAMA_MODEL` in your `.env` to a space-separated list of models to pull (e.g. `OLLAMA_MODEL=llama3.2:3b llama3.1:8b mistral`). All listed models will be pulled automatically and available in the UI. The API container waits until every model is ready before starting. Larger models (8B+) give significantly more reliable tool use than the default 3B.
 
+> **Note:** On the very first `docker compose up` with a new model, the download can take a long time. If the model does not appear in the UI after startup, it may be a race condition where the API started before the model finished pulling. First verify the Ollama container is healthy (`docker ps`), then restart with `docker compose down && docker compose up -d`.
+
 **Using different Ollama models (local run):** models must be pre-downloaded manually before starting — e.g. `ollama pull llama3.1:8b`. Any model already pulled will appear in the UI automatically.
 
 ---
