@@ -83,7 +83,7 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 
 Ollama runs locally in Docker — no API key required. Models are pre-pulled into a persistent volume on first startup.
 
-**Using a different Ollama model:** edit the `ollama pull` line in `docker-compose.yml` to pull whichever model you want (e.g. `llama3.1:8b`, `mistral`, `qwen2.5:7b`). Larger models (8B+) give significantly more reliable tool use than the default 3B.
+**Using different Ollama models:** set `OLLAMA_MODEL` in your `.env` to a space-separated list of models to pull (e.g. `OLLAMA_MODEL=llama3.2:3b llama3.1:8b mistral`). All listed models will be available in the UI. The API container waits until every model is ready before starting. Larger models (8B+) give significantly more reliable tool use than the default 3B.
 
 ---
 

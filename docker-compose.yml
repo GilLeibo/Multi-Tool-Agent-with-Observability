@@ -3,6 +3,8 @@ version: "3.9"
 services:
   ollama:
     image: ollama/ollama:latest
+    environment:
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
     volumes:
       - ollama_data:/root/.ollama   # model weights persisted across restarts
     ports:
@@ -11,8 +13,14 @@ services:
       /bin/bash -c "
         ollama serve &
         sleep 5 &&
-        ollama pull llama3.2:3b &&
+        for model in ${OLLAMA_MODEL:-llama3.2:3b}; do ollama pull \$model; done &&
         wait"
+    healthcheck:
+      test: ["CMD-SHELL", "for model in ${OLLAMA_MODEL:-llama3.2:3b}; do ollama list | grep -F \"$model\" || exit 1; done"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     restart: unless-stopped
 
   api:
@@ -22,7 +30,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     volumes:
       - sqlite_data:/app/data
     healthcheck:
