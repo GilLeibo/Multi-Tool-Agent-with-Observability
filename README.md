@@ -85,7 +85,7 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 
 Ollama requires no API key. Larger models (8B+) give significantly more reliable tool use than the default 3B.
 
-**Docker:** set `OLLAMA_MODEL` in `.env` to a space-separated list of models to pull on startup. All listed models are available in the UI. The API container waits until every model is ready before starting.
+**Docker:** set `OLLAMA_MODEL` in `.env` to a space-separated list of models to pull on startup. All listed models are available in the UI.
 ```
 OLLAMA_MODEL=llama3.2:3b llama3.1:8b mistral
 ```
@@ -117,10 +117,11 @@ docker compose up --build
 
 On first run, this will:
 - Build the API container
-- Pull `llama3.2:3b` into the Ollama volume (~4 GB, once only)
+- Pull the Ollama model(s) into a persistent volume — `llama3.2:3b` is ~2 GB and takes roughly 5–30 min depending on your connection
+- The API container waits until all models are ready before starting
 - Initialize the SQLite database and seed the product catalog
 
-Subsequent starts skip the model download — it's cached in the `ollama_data` Docker volume.
+> **First run can take a while.** Subsequent starts skip the model download — weights are cached in the `ollama_data` Docker volume.
 
 ### 3. Verify
 
