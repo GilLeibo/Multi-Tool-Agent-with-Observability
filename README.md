@@ -81,13 +81,17 @@ Tools are plain Python async functions — not an MCP server. The LLM decides wh
 | `gemini` | `GeminiClient` | gemini-2.0-flash | `GEMINI_API_KEY` |
 | `ollama` | `OllamaClient` | llama3.2:3b | Ollama service running |
 
-Ollama runs locally in Docker — no API key required. Models are pre-pulled into a persistent volume on first startup.
+#### Ollama
 
-**Using different Ollama models (Docker):** set `OLLAMA_MODEL` in your `.env` to a space-separated list of models to pull (e.g. `OLLAMA_MODEL=llama3.2:3b llama3.1:8b mistral`). All listed models will be pulled automatically and available in the UI. The API container waits until every model is ready before starting. Larger models (8B+) give significantly more reliable tool use than the default 3B.
+Ollama requires no API key. Larger models (8B+) give significantly more reliable tool use than the default 3B.
 
-> **Note:** On the very first `docker compose up` with a new model, the download can take a long time. If the model does not appear in the UI after startup, it may be a race condition where the API started before the model finished pulling. First verify the Ollama container is healthy (`docker ps`), then restart with `docker compose down && docker compose up -d`.
+**Docker:** set `OLLAMA_MODEL` in `.env` to a space-separated list of models to pull on startup. All listed models are available in the UI. The API container waits until every model is ready before starting.
+```
+OLLAMA_MODEL=llama3.2:3b llama3.1:8b mistral
+```
+> If a model is missing from the UI after startup, the download likely took longer than expected. Verify the Ollama container is healthy (`docker ps`), then run `docker compose down && docker compose up -d`.
 
-**Using different Ollama models (local run):** models must be pre-downloaded manually before starting — e.g. `ollama pull llama3.1:8b`. Any model already pulled will appear in the UI automatically.
+**Local run:** pre-download models manually before starting the app — e.g. `ollama pull llama3.1:8b`. All pulled models are detected automatically and shown in the UI.
 
 ---
 
